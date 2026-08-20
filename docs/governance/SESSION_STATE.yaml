@@ -1,0 +1,8 @@
+project: Fitapp
+target_device: Samsung Galaxy Fit3
+canonical_git: https://github.com/chayobi03-cyber/Fitapp.git
+milestone: M0_FOUNDATION
+status: ACTIVE
+next_focus: Galaxy Fit3 technical feasibility research
+git_policy: feature-branch-required-after-bootstrap
+evidence_status: PARTIAL
