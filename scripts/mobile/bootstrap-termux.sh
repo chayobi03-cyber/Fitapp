@@ -5,7 +5,8 @@ set -euo pipefail
 # Native Termux sdkmanager execution is intentionally avoided because Google
 # Linux command-line tools expect a normal Linux userspace; on Android/Termux
 # sdkmanager can abort during native registration (e.g. PerfettoTrace).
-# Use the first supported Linux userspace exposed by the installed proot-distro.
+# PRoot-Distro v5 uses Docker/OCI image references rather than a static distro
+# registry, so do not infer availability from `proot-distro list`.
 
 if [[ "$(uname -m)" != "aarch64" ]]; then
   echo "ERROR: Mobile-first path currently targets ARM64 (aarch64)."
@@ -15,34 +16,23 @@ fi
 pkg update -y
 pkg install -y git proot-distro
 
-# Current Termux proot-distro builds may expose Ubuntu rather than Debian.
-# Prefer Ubuntu 24.04; fall back to the generic Ubuntu alias if needed.
-DISTRO=""
-if proot-distro list | grep -q '^ubuntu:24.04'; then
-  DISTRO="ubuntu:24.04"
-elif proot-distro list | grep -q '^ubuntu'; then
-  DISTRO="ubuntu"
-fi
+DISTRO_IMAGE="${FITAPP_LINUX_IMAGE:-ubuntu:24.04}"
+DISTRO_NAME="${FITAPP_LINUX_NAME:-ubuntu}"
 
-if [[ -z "$DISTRO" ]]; then
-  echo "ERROR: No supported Ubuntu proot distribution is available in this Termux build."
-  proot-distro list
-  exit 3
-fi
-
-if ! proot-distro login "$DISTRO" -- true >/dev/null 2>&1; then
-  echo "Installing $DISTRO proot distribution..."
-  proot-distro install "$DISTRO"
+if ! proot-distro login "$DISTRO_NAME" -- true >/dev/null 2>&1; then
+  echo "Installing Linux userspace: $DISTRO_IMAGE"
+  proot-distro install "$DISTRO_IMAGE" --name "$DISTRO_NAME"
 fi
 
 cat <<EOF
 
 Mobile-first host bootstrap prepared.
 
-Detected Linux userspace: $DISTRO
+Linux userspace image: $DISTRO_IMAGE
+Container name: $DISTRO_NAME
 
 Next command:
-  proot-distro login $DISTRO --shared-tmp
+  proot-distro login $DISTRO_NAME --shared-tmp
 
 Then inside the Linux userspace run:
   apt update
