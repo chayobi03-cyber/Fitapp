@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:theme="@style/AppTheme" android:label="Fitapp M0 POC">
+    <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Fitapp M0 POC">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
