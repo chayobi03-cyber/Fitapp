@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Fitapp Mobile-First bootstrap for Termux.
-# Tested design target: ARM64 Android phone, Termux, JDK 17, Android SDK, Gradle 8.13.
+# Design target: ARM64 Android phone, Termux, JDK 17+ (21 preferred), Android SDK, Gradle 8.13.
 # Samsung Health SDK AAR is intentionally NOT downloaded automatically; it is proprietary.
 
 SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
@@ -17,12 +17,19 @@ if [[ "$(uname -m)" != "aarch64" ]]; then
 fi
 
 pkg update -y
-pkg install -y git wget unzip zip openjdk-17
+pkg install -y git wget unzip zip openjdk-21
 
-export JAVA_HOME="$PREFIX/lib/jvm/java-17-openjdk"
+export JAVA_HOME="$PREFIX/lib/jvm/java-21-openjdk"
 export PATH="$JAVA_HOME/bin:$PATH"
 
 java -version
+
+# Fail closed if Java is unavailable or unexpectedly old.
+JAVA_MAJOR="$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2; exit}')"
+if [[ -z "$JAVA_MAJOR" || "$JAVA_MAJOR" -lt 17 ]]; then
+  echo "ERROR: JDK 17+ is required; detected major version: ${JAVA_MAJOR:-unknown}"
+  exit 3
+fi
 
 mkdir -p "$SDK_ROOT/cmdline-tools"
 if [[ ! -x "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]]; then
@@ -56,11 +63,11 @@ gradle --version
 sdkmanager --list_installed | sed -n '1,80p'
 
 echo
- echo "Mobile build environment ready."
+echo "Mobile build environment ready."
 echo "JAVA_HOME=$JAVA_HOME"
 echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
 echo "GRADLE_HOME=$GRADLE_HOME"
 echo
- echo "Next: download Samsung Health Data SDK v1.1.0, copy samsung-health-data-api.aar to poc/android/app/libs/, then run:"
+echo "Next: download Samsung Health Data SDK v1.1.0, copy samsung-health-data-api.aar to poc/android/app/libs/, then run:"
 echo "  cd <Fitapp>/poc/android"
 echo "  gradle :app:assembleDebug"
